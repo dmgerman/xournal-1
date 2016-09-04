@@ -492,7 +492,7 @@ void parse_command_line(int argc, char* argv[], command_line_options *clo)
 
   if (clo->screenshot) {
       // simply disable it it. It gets on the way
-      clo->noNextSplash = FALSE;
+      clo->noNextSplash = TRUE;
   }
       
 
