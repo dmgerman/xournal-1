@@ -78,6 +78,9 @@ These branches are reliable and do not break compatibility with Xournal:
 | snap-to-grid           | Defines a grid to which any annotation is snapped to.                               | <2016-09-04 Sun> | yes                  |
 | quick-zoom             | Quickly zoom-in/zoom-out to a predefined zoom factor                                | <2016-09-04 Sun> | yes                  |
 | cl-options             | Command line options management                                                     | <2016-09-04 Sun> | yes                  |
+| line-widths-optimized  | https://github.com/immi-h/xournal/tree/line-widths-optimized                        |                  | yes                  |
+| kinetic scroll         | https://github.com/immi-h/xournal/tree/scroll-gesture                               |                  | yes                  |
+| small-resize           | https://github.com/immi-h/xournal/tree/small-resize                                 |                  | yes                  |
 |------------------------+-------------------------------------------------------------------------------------+------------------+----------------------|
 | next                   | This branch integrates all the branches above plus current xournal code             | <2016-09-04 Sun> |                      |
 |------------------------+-------------------------------------------------------------------------------------+------------------+----------------------|
