@@ -1,6 +1,6 @@
 #+STARTUP: showall
 
-* WARNING: DO NOT BASE DEVELOPMENT ON THIS BRANCH
+* WARNING: Do NOT base development on this repo
 
 If you want to create a new feature of xournal, then you should use
 
