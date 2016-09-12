@@ -67,6 +67,7 @@
 #define MIN_ZOOM 0.2
 #define RESIZE_MARGIN 6.0
 #define MAX_SAFE_RENDER_DPI 720 // max dpi at which PDF bg's get rendered
+#define LINE_WIDTH_PRECISION 1.2 // factor by which a line width can be drawn wrongly
 
 #define VBOX_MAIN_NITEMS 5 // number of interface items in vboxMain
 

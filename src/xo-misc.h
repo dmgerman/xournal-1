@@ -48,6 +48,8 @@ void update_item_bbox(struct Item *item);
 void make_page_clipbox(struct Page *pg);
 void make_canvas_items(void);
 void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item);
+void make_canvas_stroke_disc(struct Item *item, double * pt, double * w);
+void make_canvas_stroke_trapeze(struct Item *item, double * pt, double * w);
 void update_canvas_bg(struct Page *pg);
 gboolean is_visible(struct Page *pg);
 void rescale_bg_pixmaps(void);

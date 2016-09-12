@@ -292,10 +292,15 @@ gboolean save_journal(const char *filename, gboolean is_auto)
           else
             gzprintf(f, "#%08x", item->brush.color_rgba);
           gzprintf(f, "\" width=\"%.2f", item->brush.thickness);
-          if (item->brush.variable_width)
-            for (i=0;i<item->path->num_points-1;i++)
+          if (item->brush.variable_width) {
+            for (i=0;i<item->path->num_points;i++)
               gzprintf(f, " %.2f", item->widths[i]);
+          }
           gzprintf(f, "\">\n");
+          if (item->brush.variable_width) {
+            // dummy point, to ensure backwards compatibility
+            gzprintf(f, "%.2f %.2f ", item->path->coords[0], item->path->coords[1]);
+          }
           for (i=0;i<2*item->path->num_points;i++)
             gzprintf(f, "%.2f ", item->path->coords[i]);
           gzprintf(f, "\n</stroke>\n");
@@ -553,6 +558,7 @@ struct Item *tmpItem;
 char *tmpFilename;
 struct Background *tmpBg_pdf;
 
+
 GError *xoj_invalid(void)
 {
   return g_error_new(G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT, _("Invalid file contents"));
@@ -774,7 +780,7 @@ void xoj_parser_start_element(GMarkupParseContext *context,
         cleanup_numeric((gchar *)*attribute_values);
         tmpItem->brush.thickness = g_ascii_strtod(*attribute_values, &ptr);
         if (ptr == *attribute_values) *error = xoj_invalid();
-        i = 0;
+        i = 1;
         while (*ptr!=0) {
           realloc_cur_widths(i+1);
           ui.cur_widths[i] = g_ascii_strtod(ptr, &tmpptr);
@@ -782,11 +788,13 @@ void xoj_parser_start_element(GMarkupParseContext *context,
           ptr = tmpptr;
           i++;
         }
-        tmpItem->brush.variable_width = (i>0);
-        if (i>0) {
-          tmpItem->brush.variable_width = TRUE;
+        tmpItem->brush.variable_width = (i>1);
+        if (i>1) {
+          /* For the moment, pretend it's a file from an old xournal version, so
+             estimate the first width */
+          ui.cur_widths[0] = ui.cur_widths[1];
           tmpItem->widths = (gdouble *) g_memdup(ui.cur_widths, i*sizeof(gdouble));
-          ui.cur_path.num_points =  i+1;
+          ui.cur_path.num_points = i;
         }
         has_attr |= 1;
       }
@@ -1011,8 +1019,22 @@ void xoj_parser_text(GMarkupParseContext *context,
     if (n<4 || n&1 || 
         (tmpItem->brush.variable_width && (n!=2*ui.cur_path.num_points))) 
       { *error = xoj_invalid(); return; } // wrong number of points
-    tmpItem->path = gnome_canvas_points_new(n/2);
-    g_memmove(tmpItem->path->coords, ui.cur_path.coords, n*sizeof(double));
+    /* If the first two points are equal, then assume that the first one was a dummy point and drop it.
+       (If it wasn't, dropping it is fine anyway) */
+    /* Note: comparing floats with "==" is dangerous, though in the case of dummy points, both floats
+       will have been computed in the same way from the same ascii string, so they should really be
+       absolutely equal. */
+    if (ui.cur_path.coords[0] == ui.cur_path.coords[2] && ui.cur_path.coords[1] == ui.cur_path.coords[3]) {
+      ui.cur_path.num_points--;
+      tmpItem->path = gnome_canvas_points_new(n/2 - 1);
+      g_memmove(tmpItem->path->coords, ui.cur_path.coords + 2, (n-2)*sizeof(double));
+      /* Delete the first width (which was only estimated anyway): */
+      memmove(tmpItem->widths, tmpItem->widths + 1, ui.cur_path.num_points*sizeof(gdouble));
+      tmpItem->widths = g_realloc(tmpItem->widths, ui.cur_path.num_points*sizeof(gdouble));
+    } else {
+      tmpItem->path = gnome_canvas_points_new(n/2);
+      g_memmove(tmpItem->path->coords, ui.cur_path.coords, n*sizeof(double));
+    }
   }
   if (!strcmp(element_name, "text")) {
     tmpItem->text = g_malloc(text_len+1);

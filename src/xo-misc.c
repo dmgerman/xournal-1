@@ -632,12 +632,44 @@ void make_page_clipbox(struct Page *pg)
   gnome_canvas_path_def_unref(pg_clip);
 }
 
+void make_canvas_stroke_disc(struct Item *item, double * pt, double * w)
+{
+  gnome_canvas_item_new((GnomeCanvasGroup *) item->canvas_item,
+     gnome_canvas_ellipse_get_type(),
+     "x1", pt[0]-w[0]/2, "y1", pt[1]-w[0]/2,
+     "x2", pt[0]+w[0]/2, "y2", pt[1]+w[0]/2,
+     "fill-color-rgba", item->brush.color_rgba, NULL);
+}
+
+void make_canvas_stroke_trapeze(struct Item *item, double * pt, double * w)
+{
+  GnomeCanvasPoints poly;
+  double polypt[8];
+
+  poly.coords = polypt;
+  poly.num_points = 4;
+  poly.ref_count = 1;
+  gnome_canvas_get_butt_points(pt[0], pt[1], pt[2], pt[3], w[1], 0,
+    polypt+0, polypt+1, polypt+2, polypt+3);
+  gnome_canvas_get_butt_points(pt[2], pt[3], pt[0], pt[1], w[0], 0,
+    polypt+4, polypt+5, polypt+6, polypt+7);
+
+  gnome_canvas_item_new((GnomeCanvasGroup *) item->canvas_item,
+     gnome_canvas_polygon_get_type(), "points", &poly,
+     "fill-color-rgba", item->brush.color_rgba, NULL);
+
+}
+
+//int CNTP, CNTS, CNTT; // profiling...
+
 void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
 {
   PangoFontDescription *font_desc;
   GnomeCanvasPoints points;
   GtkWidget *dialog;
-  int j;
+  int j0, j;
+  gboolean disc_done;
+  double wmin, wmax;
 
   if (item->type == ITEM_STROKE) {
     if (!item->brush.variable_width)
@@ -649,16 +681,49 @@ void make_canvas_item_one(GnomeCanvasGroup *group, struct Item *item)
     else {
       item->canvas_item = gnome_canvas_item_new(group,
             gnome_canvas_group_get_type(), NULL);
-      points.num_points = 2;
+
       points.ref_count = 1;
-      for (j = 0; j < item->path->num_points-1; j++) {
-        points.coords = item->path->coords+2*j;
-        gnome_canvas_item_new((GnomeCanvasGroup *) item->canvas_item,
+      disc_done = FALSE;
+      j0 = 0;
+
+      //CNTP += item->path->num_points - 1; // profiling...
+
+      while (j0 < item->path->num_points - 1) {
+          
+        wmin = wmax = item->widths[j0];
+        
+        j = j0 + 1;
+        while (j < item->path->num_points &&
+               item->widths[j] < wmin * LINE_WIDTH_PRECISION &&
+               item->widths[j] * LINE_WIDTH_PRECISION > wmax) {
+          if (item->widths[j] < wmin) wmin = item->widths[j];
+          if (item->widths[j] > wmax) wmax = item->widths[j];
+          j++;
+        }
+        
+        if (j0 < j - 1) {
+          /* draw from j0 to j-1 */
+          points.num_points = j - j0;
+          points.coords = item->path->coords+2*j0;   
+          gnome_canvas_item_new((GnomeCanvasGroup *) item->canvas_item,
               gnome_canvas_line_get_type(), "points", &points, 
               "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND, 
               "fill-color-rgba", item->brush.color_rgba,
-              "width-units", item->widths[j], NULL);
+              "width-units", (wmin + wmax) / 2, NULL);
+          disc_done = TRUE; //CNTS++; // profiling...
+          j0 = j - 1;
+        } else { /* j == j0+1; draw trapeze from j0 to j */
+          if (!disc_done) {
+            make_canvas_stroke_disc(item, item->path->coords+2*j0, item->widths+j0);
+          }
+          make_canvas_stroke_trapeze(item, item->path->coords+2*j0, item->widths+j0);
+          disc_done = FALSE; //CNTT++; // profiling...
+          j0 = j;
+        }
       }
+      if (!disc_done)
+        make_canvas_stroke_disc(item, item->path->coords+2*(item->path->num_points-1),
+                                    item->widths+item->path->num_points-1);
     }
   }
   if (item->type == ITEM_TEXT) {
@@ -707,6 +772,10 @@ void make_canvas_items(void)
   struct Item *item;
   GList *pagelist, *layerlist, *itemlist;
   
+  //int ti; // profiling...
+  //ti = clock(); // profiling...
+  //CNTP=CNTS=CNTT=0; // profiling...
+  
   for (pagelist = journal.pages; pagelist!=NULL; pagelist = pagelist->next) {
     pg = (struct Page *)pagelist->data;
     if (pg->group == NULL) {
@@ -727,6 +796,8 @@ void make_canvas_items(void)
       }
     }
   }
+  
+  //printf("Cnts: P=%d, S=%d, T=%d; Time: %d\n", CNTP, CNTS, CNTT, (int)(clock() - ti)); // profiling...
 }
 
 void update_canvas_bg(struct Page *pg)
@@ -2032,7 +2103,7 @@ void resize_journal_items_by(GList *itemlist, double scaling_x, double scaling_y
         pt[1] = pt[1]*scaling_y + offset_y;
       }
       if (item->brush.variable_width)
-        for (i=0, wid=item->widths; i<item->path->num_points-1; i++, wid++)
+        for (i=0, wid=item->widths; i<item->path->num_points; i++, wid++)
           *wid = *wid * mean_scaling;
 
       item->bbox.left = item->bbox.left*scaling_x + offset_x;

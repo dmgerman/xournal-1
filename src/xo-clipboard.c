@@ -98,7 +98,7 @@ void selection_to_clip(void)
             + sizeof(int) // num_points
             + 2*item->path->num_points*sizeof(double); // the points
       if (item->brush.variable_width)
-        bufsz += (item->path->num_points-1)*sizeof(double); // the widths
+        bufsz += (item->path->num_points)*sizeof(double); // the widths
     }
     else if (item->type == ITEM_TEXT) {
       bufsz+= sizeof(int) // type
@@ -146,8 +146,8 @@ void selection_to_clip(void)
       g_memmove(p, item->path->coords, 2*item->path->num_points*sizeof(double));
       p+= 2*item->path->num_points*sizeof(double);
       if (item->brush.variable_width) {
-        g_memmove(p, item->widths, (item->path->num_points-1)*sizeof(double));
-        p+= (item->path->num_points-1)*sizeof(double);
+        g_memmove(p, item->widths, (item->path->num_points)*sizeof(double));
+        p+= (item->path->num_points)*sizeof(double);
       }
     }
     if (item->type == ITEM_TEXT) {
@@ -256,8 +256,8 @@ void clipboard_paste_from_xournal(GtkSelectionData *sel_data)
       }
       p+= 2*item->path->num_points*sizeof(double);
       if (item->brush.variable_width) {
-        item->widths = g_memdup(p, (item->path->num_points-1)*sizeof(double));
-        p+= (item->path->num_points-1)*sizeof(double);
+        item->widths = g_memdup(p, (item->path->num_points)*sizeof(double));
+        p+= (item->path->num_points)*sizeof(double);
       }
       else item->widths = NULL;
       update_item_bbox(item);

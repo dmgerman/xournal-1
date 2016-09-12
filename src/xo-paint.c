@@ -230,7 +230,7 @@ void create_new_stroke(GdkEvent *event)
   realloc_cur_path(2);
   ui.cur_path.num_points = 1;
   get_pointer_coords(event, ui.cur_path.coords);
-  
+
   if (ui.cur_brush->ruler) {
     ui.cur_item->canvas_item = gnome_canvas_item_new(ui.cur_layer->group,
       gnome_canvas_line_get_type(),
@@ -238,14 +238,22 @@ void create_new_stroke(GdkEvent *event)
       "fill-color-rgba", ui.cur_item->brush.color_rgba,
       "width-units", ui.cur_item->brush.thickness, NULL);
     ui.cur_item->brush.variable_width = FALSE;
-  } else
+  } else {
+    double current_width;
     ui.cur_item->canvas_item = gnome_canvas_item_new(
       ui.cur_layer->group, gnome_canvas_group_get_type(), NULL);
+
+    if (ui.cur_item->brush.variable_width) {
+      realloc_cur_widths(1);
+      current_width = ui.cur_item->brush.thickness*get_pressure_multiplier(event);
+      ui.cur_widths[0] = current_width;
+      make_canvas_stroke_disc(ui.cur_item, ui.cur_path.coords, ui.cur_widths);
+    } else current_width = ui.cur_item->brush.thickness;
+  }
 }
 
 void continue_stroke(GdkEvent *event)
 {
-  GnomeCanvasPoints seg;
   double *pt, current_width, pressure;
 
   if (ui.cur_brush->ruler) {
@@ -256,17 +264,17 @@ void continue_stroke(GdkEvent *event)
   } 
   
   get_pointer_coords(event, pt+2);
-  
+    
   if (ui.cur_item->brush.variable_width) {
-    realloc_cur_widths(ui.cur_path.num_points);
+    realloc_cur_widths(ui.cur_path.num_points+1);
     pressure = get_pressure_multiplier(event);
-    if (pressure > ui.width_minimum_multiplier) 
+    //if (pressure > ui.width_minimum_multiplier) 
       current_width = ui.cur_item->brush.thickness*get_pressure_multiplier(event);
-    else { // reported pressure is 0.
-      if (ui.cur_path.num_points >= 2) current_width = ui.cur_widths[ui.cur_path.num_points-2];
-      else current_width = ui.cur_item->brush.thickness;
-    }
-    ui.cur_widths[ui.cur_path.num_points-1] = current_width;
+    //else { // reported pressure is 0.
+    //  if (ui.cur_path.num_points >= 2) current_width = ui.cur_widths[ui.cur_path.num_points-2];
+    //  else current_width = ui.cur_item->brush.thickness;
+    //}
+    ui.cur_widths[ui.cur_path.num_points] = current_width;
   }
   else current_width = ui.cur_item->brush.thickness;
   
@@ -277,23 +285,42 @@ void continue_stroke(GdkEvent *event)
       return;  // not a meaningful motion
     ui.cur_path.num_points++;
   }
-
-  seg.coords = pt; 
-  seg.num_points = 2;
-  seg.ref_count = 1;
   
   /* note: we're using a piece of the cur_path array. This is ok because
      upon creation the line just copies the contents of the GnomeCanvasPoints
      into an internal structure */
 
-  if (ui.cur_brush->ruler)
-    gnome_canvas_item_set(ui.cur_item->canvas_item, "points", &seg, NULL);
-  else
-    gnome_canvas_item_new((GnomeCanvasGroup *)ui.cur_item->canvas_item,
-       gnome_canvas_line_get_type(), "points", &seg,
-       "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
-       "fill-color-rgba", ui.cur_item->brush.color_rgba,
-       "width-units", current_width, NULL);
+  if (ui.cur_item->brush.variable_width) {
+    if (ui.cur_widths[ui.cur_path.num_points-1] < ui.cur_widths[ui.cur_path.num_points-2] * LINE_WIDTH_PRECISION &&
+        ui.cur_widths[ui.cur_path.num_points-2] < ui.cur_widths[ui.cur_path.num_points-1] * LINE_WIDTH_PRECISION) {
+      GnomeCanvasPoints seg;
+      seg.coords = pt; 
+      seg.num_points = 2;
+      seg.ref_count = 1;
+      gnome_canvas_item_new((GnomeCanvasGroup *)ui.cur_item->canvas_item,
+         gnome_canvas_line_get_type(), "points", &seg,
+         "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
+         "fill-color-rgba", ui.cur_item->brush.color_rgba,
+         "width-units", (ui.cur_widths[ui.cur_path.num_points-2] + ui.cur_widths[ui.cur_path.num_points-1]) / 2, NULL);      
+    } else {
+      make_canvas_stroke_trapeze(ui.cur_item, pt, ui.cur_widths+ui.cur_path.num_points-2);
+      make_canvas_stroke_disc(ui.cur_item, pt + 2, ui.cur_widths+ui.cur_path.num_points-1);
+   }
+  } else {
+    GnomeCanvasPoints seg;
+    seg.coords = pt; 
+    seg.num_points = 2;
+    seg.ref_count = 1;
+    if (ui.cur_brush->ruler) {
+      gnome_canvas_item_set(ui.cur_item->canvas_item, "points", &seg, NULL);
+    } else {
+      gnome_canvas_item_new((GnomeCanvasGroup *)ui.cur_item->canvas_item,
+         gnome_canvas_line_get_type(), "points", &seg,
+         "cap-style", GDK_CAP_ROUND, "join-style", GDK_JOIN_ROUND,
+         "fill-color-rgba", ui.cur_item->brush.color_rgba,
+         "width-units", current_width, NULL);      
+    }
+  }
 }
 
 void abort_stroke(void)
@@ -323,7 +350,7 @@ void finalize_stroke(void)
       2*ui.cur_path.num_points*sizeof(double));
   if (ui.cur_item->brush.variable_width)
     ui.cur_item->widths = (gdouble *)g_memdup(ui.cur_widths, 
-                            (ui.cur_path.num_points-1)*sizeof(gdouble));
+                            (ui.cur_path.num_points)*sizeof(gdouble));
   else ui.cur_item->widths = NULL;
   update_item_bbox(ui.cur_item);
   ui.cur_path.num_points = 0;
@@ -383,7 +410,7 @@ void erase_stroke_portions(struct Item *item, double x, double y, double radius,
           newhead->path = gnome_canvas_points_new(i);
           g_memmove(newhead->path->coords, item->path->coords, 2*i*sizeof(double));
           if (newhead->brush.variable_width)
-            newhead->widths = (gdouble *)g_memdup(item->widths, (i-1)*sizeof(gdouble));
+            newhead->widths = (gdouble *)g_memdup(item->widths, i*sizeof(gdouble));
           else newhead->widths = NULL;
         }
         while (++i < item->path->num_points) {
@@ -399,7 +426,7 @@ void erase_stroke_portions(struct Item *item, double x, double y, double radius,
                            2*(item->path->num_points-i)*sizeof(double));
           if (newtail->brush.variable_width)
             newtail->widths = (gdouble *)g_memdup(item->widths+i, 
-              (item->path->num_points-i-1)*sizeof(gdouble));
+              (item->path->num_points-i)*sizeof(gdouble));
           else newtail->widths = NULL;
           newtail->canvas_item = NULL;
         }
