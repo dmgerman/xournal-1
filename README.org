@@ -1,5 +1,13 @@
 #+STARTUP: showall
 
+* WARNING: DO NOT BASE DEVELOPMENT ON THIS BRANCH
+
+If you want to create a new feature of xournal, then you should use
+
+http://github.com/xournal/xournal 
+
+as the basis of your branch. This branch might be rebased in the future.
+
 * This is a testing repository for new features of Xournal
 
 This is a mirror of the git repository of Xournal
