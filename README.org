@@ -63,37 +63,22 @@ experimental features.
 
 These branches are reliable and do not break compatibility with Xournal:
 
-| Name                   | Purpose                                                                             | Rebased to head  | Integrated into next |
-|------------------------+-------------------------------------------------------------------------------------+------------------+----------------------|
-| Master                 | Identical to upstream except for this file                                          | <2016-09-04 Sun> | yes                  |
-| Upstream               | Identical to Denis repo                                                             | <2016-09-04 Sun> | yes                  |
-|------------------------+-------------------------------------------------------------------------------------+------------------+----------------------|
-| fix-update-width       | Fixes annoyance: when rest the width of selected strokes, keep their variable width | <2016-09-04 Sun> | yes                  |
-| glade                  | Uses XML glade interface for configuration files                                    | <2016-04-20 Wed> | yes                  |
-| horizontal-scroll-lock | Option to Lock the scroll horizontally                                              | <2016-09-04 Sun> | yes                  |
-| layers                 | Option to see layers above the current one                                          | <2016-09-04 Sun> | yes                  |
-| message                | Add a pop up warning that you are using my code (used by next, useless stand alone) | <2016-09-04 Sun> | yes                  |
-| mru                    | Update the Most-Recently-Used list with the currently opened page                   | <2016-09-04 Sun> | yes                  |
-| popupmenu              | Add a menu to right click on next/prev page to improve stylus navigation            | <2016-09-04 Sun> | yes                  |
-| snap-to-grid           | Defines a grid to which any annotation is snapped to.                               | <2016-09-04 Sun> | yes                  |
-| quick-zoom             | Quickly zoom-in/zoom-out to a predefined zoom factor                                | <2016-09-04 Sun> | yes                  |
-| cl-options             | Command line options management                                                     | <2016-09-04 Sun> | yes                  |
-| line-widths-optimized  | https://github.com/immi-h/xournal/tree/line-widths-optimized                        |                  | yes                  |
-| kinetic scroll         | https://github.com/immi-h/xournal/tree/scroll-gesture                               |                  | yes                  |
-| small-resize           | https://github.com/immi-h/xournal/tree/small-resize                                 |                  | yes                  |
-|------------------------+-------------------------------------------------------------------------------------+------------------+----------------------|
-| next                   | This branch integrates all the branches above plus current xournal code             | <2016-09-04 Sun> |                      |
-|------------------------+-------------------------------------------------------------------------------------+------------------+----------------------|
-
-Some experimental branches, they are incomplete or break compatibility:
-
-| Name            | Purpose                                                 | Todo                          |
-|-----------------+---------------------------------------------------------+-------------------------------|
-| bookmarks       | Tries to implement bookmarks                            | Code is a bit outdated        |
-| cmake           | Replaces autogen/automake with cmake                    | Problems detecting glade      |
-| dot-paper-style | Implements dotted paper style, breaks XOJ compatibility | Fully implemented             |
-| gtk3            | Attempts to replace gtk2 with gtk3                      | Performance issues, some bugs |
-
+| Name                   | Purpose                                                                             | location                                                        |
+|------------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------|
+| fix-update-width       | Fixes annoyance: when rest the width of selected strokes, keep their variable width | https://github.com/dmgerman/xournal/fix-update-width            |
+| glade                  | Uses XML glade interface for configuration files                                    | https://github.com/dmgerman/xournal/tree/glade                  |
+| horizontal-scroll-lock | Option to Lock the scroll horizontally                                              | https://github.com/dmgerman/xournal/tree/horizontal-scroll-lock |
+| layers                 | Option to see layers above the current one                                          | https://github.com/dmgerman/xournal/tree/layers                 |
+| message                | Add a pop up warning that you are using my code (used by next, useless stand alone) | https://github.com/dmgerman/xournal/tree/message                |
+| mru                    | Update the Most-Recently-Used list with the currently opened page                   | https://github.com/dmgerman/xournal/tree/mru                    |
+| popupmenu              | Add a menu to right click on next/prev page to improve stylus navigation            | https://github.com/dmgerman/xournal/tree/popupmenu              |
+| snap-to-grid           | Defines a grid to which any annotation is snapped to.                               | https://github.com/dmgerman/xournal/tree/snap-to-grid           |
+| quick-zoom             | Quickly zoom-in/zoom-out to a predefined zoom factor                                | https://github.com/dmgerman/xournal/tree/quick-zoom             |
+| cl-options             | Command line options management                                                     | https://github.com/dmgerman/xournal/tree/cl-options             |
+| line-widths-optimized  | Improves the look of lines when using pressure sensitive stylus                     | https://github.com/immi-h/xournal/tree/line-widths-optimized    |
+| kinetic scroll         | Adds kinetic scroll to xournal                                                      | https://github.com/immi-h/xournal/tree/scroll-gesture           |
+| small-resize           | Improves selection and resizing of small elemeents                                  | https://github.com/immi-h/xournal/tree/small-resize             |
+|------------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------|
 
 ** How to contribute
 
