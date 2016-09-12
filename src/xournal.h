@@ -66,6 +66,7 @@
 #define DISPLAY_DPI_DEFAULT 96.0
 #define MIN_ZOOM 0.2
 #define RESIZE_MARGIN 6.0
+#define MOVE_MIN_INTERIOR 12.0
 #define MAX_SAFE_RENDER_DPI 720 // max dpi at which PDF bg's get rendered
 #define LINE_WIDTH_PRECISION 1.2 // factor by which a line width can be drawn wrongly
 

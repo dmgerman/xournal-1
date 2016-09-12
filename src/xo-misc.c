@@ -2013,6 +2013,51 @@ void reset_focus(void)
     gtk_widget_grab_focus(GTK_WIDGET(canvas));
 }
 
+
+// On which side(s) of the selection is the click at pt (for resizing)?
+// Returns 0 if pt is inside the selection and -1 if pt is far away from it
+
+int get_resize_sides(double * pt) {
+
+    double resize_margin, move_min_interior, width, height;
+    double inner_margin_h, inner_margin_v, outer_margin_h, outer_margin_v;
+    int ret = 0;
+
+    resize_margin = RESIZE_MARGIN/ui.zoom;
+    move_min_interior = MOVE_MIN_INTERIOR/ui.zoom;
+    
+    inner_margin_h = resize_margin;
+    width = ui.selection->bbox.right-ui.selection->bbox.left;
+    if (width-2*inner_margin_h < move_min_interior)
+      inner_margin_h = (width-move_min_interior)/2;
+    if (inner_margin_h < 0) inner_margin_h = 0;
+    outer_margin_h = 2 * resize_margin - inner_margin_h;
+    
+    inner_margin_v = resize_margin;
+    height = ui.selection->bbox.bottom-ui.selection->bbox.top;
+    if (height-2*inner_margin_v < move_min_interior)
+      inner_margin_v = (height-move_min_interior)/2;
+    if (inner_margin_v < 0) inner_margin_v = 0;
+    outer_margin_v = 2 * resize_margin - inner_margin_v;
+    
+    // make sure the click is within a box slightly bigger than the selection rectangle
+    if (pt[0]<ui.selection->bbox.left-outer_margin_h || 
+        pt[0]>ui.selection->bbox.right+outer_margin_h ||
+        pt[1]<ui.selection->bbox.top-outer_margin_v || 
+        pt[1]>ui.selection->bbox.bottom+outer_margin_v)
+      return -1;
+
+    // now, if the click is near the edge, it's a resize operation
+    // keep track of which edges we're close to, since those are the ones which should move
+    if (pt[0]<ui.selection->bbox.left+inner_margin_h) ret |= RESIZE_SIDE_LEFT;
+    if (pt[0]>ui.selection->bbox.right-inner_margin_h) ret |= RESIZE_SIDE_RIGHT;
+    if (pt[1]<ui.selection->bbox.top+inner_margin_v) ret |= RESIZE_SIDE_TOP;
+    if (pt[1]>ui.selection->bbox.bottom-inner_margin_v) ret |= RESIZE_SIDE_BOTTOM;
+    return ret;
+}
+
+
+
 // selection / clipboard stuff
 
 void reset_selection(void)

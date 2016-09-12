@@ -152,36 +152,28 @@ void update_cursor_for_resize(double *pt)
 {
   gboolean in_range_x, in_range_y;
   gboolean can_resize_left, can_resize_right, can_resize_bottom, can_resize_top;
-  gdouble resize_margin;
+  int resize_sides;
   GdkCursorType newcursor;
 
+  resize_sides = get_resize_sides(pt);
+  
   // if we're not even close to the box in some direction, return immediately
-  resize_margin = RESIZE_MARGIN / ui.zoom;
-  if (pt[0]<ui.selection->bbox.left-resize_margin || pt[0]>ui.selection->bbox.right+resize_margin
-   || pt[1]<ui.selection->bbox.top-resize_margin || pt[1]>ui.selection->bbox.bottom+resize_margin)
+  if (resize_sides == -1)
   {
     if (ui.is_sel_cursor) update_cursor();
     return;
   }
 
   ui.is_sel_cursor = TRUE;
-  can_resize_left = (pt[0] < ui.selection->bbox.left+resize_margin);
-  can_resize_right = (pt[0] > ui.selection->bbox.right-resize_margin);
-  can_resize_top = (pt[1] < ui.selection->bbox.top+resize_margin);
-  can_resize_bottom = (pt[1] > ui.selection->bbox.bottom-resize_margin);
 
-  if (can_resize_left) {
-    if (can_resize_top) newcursor = GDK_TOP_LEFT_CORNER;
-    else if (can_resize_bottom) newcursor = GDK_BOTTOM_LEFT_CORNER;
-    else newcursor = GDK_LEFT_SIDE;
-  }
-  else if (can_resize_right) {
-    if (can_resize_top) newcursor = GDK_TOP_RIGHT_CORNER;
-    else if (can_resize_bottom) newcursor = GDK_BOTTOM_RIGHT_CORNER;
-    else newcursor = GDK_RIGHT_SIDE;
-  }
-  else if (can_resize_top) newcursor = GDK_TOP_SIDE;
-  else if (can_resize_bottom) newcursor = GDK_BOTTOM_SIDE;
+  if (resize_sides == RESIZE_SIDE_TOP) newcursor = GDK_TOP_SIDE;
+  else if (resize_sides == RESIZE_SIDE_BOTTOM) newcursor = GDK_BOTTOM_SIDE;
+  else if (resize_sides == RESIZE_SIDE_LEFT) newcursor = GDK_LEFT_SIDE;
+  else if (resize_sides == RESIZE_SIDE_RIGHT) newcursor = GDK_RIGHT_SIDE;
+  else if (resize_sides == (RESIZE_SIDE_TOP | RESIZE_SIDE_LEFT)) newcursor = GDK_TOP_LEFT_CORNER;
+  else if (resize_sides == (RESIZE_SIDE_TOP | RESIZE_SIDE_RIGHT)) newcursor = GDK_TOP_RIGHT_CORNER;
+  else if (resize_sides == (RESIZE_SIDE_BOTTOM | RESIZE_SIDE_LEFT)) newcursor = GDK_BOTTOM_LEFT_CORNER;
+  else if (resize_sides == (RESIZE_SIDE_BOTTOM | RESIZE_SIDE_RIGHT)) newcursor = GDK_BOTTOM_RIGHT_CORNER;
   else newcursor = GDK_FLEUR;
 
   if (ui.cursor!=NULL && ui.cursor->type == newcursor) return;

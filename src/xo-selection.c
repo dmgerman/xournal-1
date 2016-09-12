@@ -305,7 +305,8 @@ gboolean start_movesel(GdkEvent *event)
 
 gboolean start_resizesel(GdkEvent *event)
 {
-  double pt[2], resize_margin, hmargin, vmargin;
+  double pt[2];
+  int resize_sides;
 
   if (ui.selection==NULL) return FALSE;
   if (ui.cur_layer != ui.selection->layer) return FALSE;
@@ -313,30 +314,17 @@ gboolean start_resizesel(GdkEvent *event)
   get_pointer_coords(event, pt);
 
   if (ui.selection->type == ITEM_SELECTRECT || ui.selection->type == ITEM_SELECTREGION) {
-    resize_margin = RESIZE_MARGIN/ui.zoom;
-    hmargin = (ui.selection->bbox.right-ui.selection->bbox.left)*0.3;
-    if (hmargin>resize_margin) hmargin = resize_margin;
-    vmargin = (ui.selection->bbox.bottom-ui.selection->bbox.top)*0.3;
-    if (vmargin>resize_margin) vmargin = resize_margin;
+    resize_sides = get_resize_sides(pt);
 
-    // make sure the click is within a box slightly bigger than the selection rectangle
-    if (pt[0]<ui.selection->bbox.left-resize_margin || 
-        pt[0]>ui.selection->bbox.right+resize_margin ||
-        pt[1]<ui.selection->bbox.top-resize_margin || 
-        pt[1]>ui.selection->bbox.bottom+resize_margin)
-      return FALSE;
-
+    // not on any edge?
+    if (resize_sides == 0 || resize_sides == -1) return FALSE;
+    
     // now, if the click is near the edge, it's a resize operation
     // keep track of which edges we're close to, since those are the ones which should move
-    ui.selection->resizing_left = (pt[0]<ui.selection->bbox.left+hmargin);
-    ui.selection->resizing_right = (pt[0]>ui.selection->bbox.right-hmargin);
-    ui.selection->resizing_top = (pt[1]<ui.selection->bbox.top+vmargin);
-    ui.selection->resizing_bottom = (pt[1]>ui.selection->bbox.bottom-vmargin);
-
-    // we're not near any edge, give up
-    if (!(ui.selection->resizing_left || ui.selection->resizing_right ||
-          ui.selection->resizing_top  || ui.selection->resizing_bottom)) 
-      return FALSE;
+    ui.selection->resizing_left = resize_sides & RESIZE_SIDE_LEFT;
+    ui.selection->resizing_right = resize_sides & RESIZE_SIDE_RIGHT;
+    ui.selection->resizing_top = resize_sides & RESIZE_SIDE_TOP;
+    ui.selection->resizing_bottom = resize_sides & RESIZE_SIDE_BOTTOM;
 
     ui.cur_item_type = ITEM_RESIZESEL;
     ui.selection->new_y1 = ui.selection->bbox.top;

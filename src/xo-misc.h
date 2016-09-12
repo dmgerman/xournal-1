@@ -97,6 +97,12 @@ gboolean ok_to_close(void);
 
 void reset_focus(void);
 
+#define RESIZE_SIDE_TOP 1
+#define RESIZE_SIDE_BOTTOM 2
+#define RESIZE_SIDE_LEFT 4
+#define RESIZE_SIDE_RIGHT 8
+int get_resize_sides(double * pt);
+
 // selection / clipboard stuff
 
 void reset_selection(void);
