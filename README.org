@@ -102,7 +102,7 @@ order to guarantee this we propose the following workflow:
    xournal. They might also provide valuable comments and advice, and
    direct to existing code (such as experimental branches).
 2. Make a clone of the *upstream* branch of the github repo
-   https://github.com/dmgerman/xournal/tree/upstream
+   https://github.com/xournal/xournal
 3. Develop your feature, test it.
 4. When it is ready, submit a pull-request to Daniel (github user
    dmgerman). Make sure your commits are rebased to the upstream
