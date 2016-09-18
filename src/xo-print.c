@@ -1709,6 +1709,7 @@ void print_page_to_cairo(cairo_t *cr, struct Page *pg, gdouble width, gdouble he
             } else { /* j == j0+1; draw trapeze from j0 to j... including the discs */
               double angle = atan2(pt[2*j+1]-pt[2*j0+1], pt[2*j]-pt[2*j0]);
               /* The following it not perfect if the two line widths differ a lot... */
+              cairo_new_path(cr);
               cairo_arc(cr, pt[2*j0], pt[2*j0 + 1], item->widths[j0]/2, angle + M_PI / 2, angle - M_PI / 2);
               cairo_arc(cr, pt[2*j], pt[2*j + 1], item->widths[j]/2, angle - M_PI / 2, angle + M_PI / 2);
               cairo_fill(cr);
