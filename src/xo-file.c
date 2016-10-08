@@ -1851,6 +1851,8 @@ void save_config_to_file(void)
     gdk_drawable_get_size(winMain->window, 
       &ui.window_default_width, &ui.window_default_height);
 
+  setlocale(LC_NUMERIC, "C");
+
   update_keyval("general", "display_dpi",
     _(" the display resolution, in pixels per inch"),
     g_strdup_printf("%.2f", DEFAULT_ZOOM*72));
@@ -2137,6 +2139,7 @@ void save_config_to_file(void)
   update_keyval("tools", "grid_separation",
     _(" distance between grid lines if Snap To Grid is selected"),
     g_strdup_printf("%.4f", ui.grid_separation));
+  setlocale(LC_NUMERIC, "");
 
   buf = g_key_file_to_data(ui.config_data, NULL, NULL);
   if (buf == NULL) return;
