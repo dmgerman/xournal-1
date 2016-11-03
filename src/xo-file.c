@@ -1020,11 +1020,14 @@ void xoj_parser_text(GMarkupParseContext *context,
         (tmpItem->brush.variable_width && (n!=2*ui.cur_path.num_points))) 
       { *error = xoj_invalid(); return; } // wrong number of points
     /* If the first two points are equal, then assume that the first one was a dummy point and drop it.
-       (If it wasn't, dropping it is fine anyway) */
+       (If it wasn't, dropping it is fine anyway.)
+       But do this only for variable width strokes, and also don't do it if there are only two points
+       (since a single point would crash xournal.) */
     /* Note: comparing floats with "==" is dangerous, though in the case of dummy points, both floats
        will have been computed in the same way from the same ascii string, so they should really be
        absolutely equal. */
-    if (ui.cur_path.coords[0] == ui.cur_path.coords[2] && ui.cur_path.coords[1] == ui.cur_path.coords[3]) {
+    if (tmpItem->brush.variable_width && n >= 3 &&
+        ui.cur_path.coords[0] == ui.cur_path.coords[2] && ui.cur_path.coords[1] == ui.cur_path.coords[3]) {
       ui.cur_path.num_points--;
       tmpItem->path = gnome_canvas_points_new(n/2 - 1);
       g_memmove(tmpItem->path->coords, ui.cur_path.coords + 2, (n-2)*sizeof(double));
