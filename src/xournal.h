@@ -77,7 +77,7 @@
 
 // For gesture scrolling:
 #define SCROLL_MEASURE_INTERVAL 50 // least time interval used to measure finger speed (in millisec)
-#define SCROLL_FRAMETIME 20 // time between two frames of scrolling (in millisec)
+#define SCROLL_FRAMETIME 40 // time between two frames of scrolling (in millisec)
 #define SCROLL_SLOWDOWN 0.1 // decrease of scrolling speed in each frame (speed is in pixel per millisec)
 
 /* a string (+ aux data) that maintains a refcount */

@@ -609,7 +609,8 @@ void do_hand(GdkEvent *event)
 }
 
 void finalize_hand(void) {
-  g_timeout_add(SCROLL_FRAMETIME, do_continue_scrolling, NULL);
+  g_timeout_add_full(G_PRIORITY_HIGH_IDLE, SCROLL_FRAMETIME,
+                    do_continue_scrolling, NULL, NULL);
 }
 
 void stop_scrolling(void) {
